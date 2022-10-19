@@ -34,7 +34,7 @@ class CameraStream {
 
         this.ffmpegProcess = null;
         this.recordingWatcher = null;
-
+        this.deleteOldRecordingsProcessProcess = null;
         this.args = [
             "-hide_banner",
             "-y", // overwrite files without asking
@@ -56,6 +56,7 @@ class CameraStream {
         this.initFileMover();
         this.initCombinationCron();
         this.startRecording();
+        if(storage.retentionPeriod) this.initOldRecordingsCron();
         this.log(`Camera initialised`);
     }
 
@@ -93,6 +94,41 @@ class CameraStream {
                 await videoConcatinator.combineFilesInDirectory(dayDir, true);
             } catch (error) {
                 console.log('error combining files', error);
+            }
+        }, null, true, 'UTC');
+    }
+
+    initOldRecordingsCron() {
+        new CronJob('0 1 * * *', async () => {
+            try {
+                const deleteOldRecordingsArgs = [
+                    storage.rootpath,
+                    "-maxdepth", "5",
+                    "-name", "output.mkv",
+                    "-mtime", storage.retentionPeriod,
+                    "-exec", "rm", "{}", "\;"
+                ]
+                this.deleteOldRecordingsProcess = childProcess.spawn("find", deleteOldRecordingsArgs, {});
+
+                this.deleteOldRecordingsProcess.stdout.on('data', (data) => {
+                    this.log('[STDOUT]', data.toString());
+                });
+    
+                this.deleteOldRecordingsProcess.stderr.on('data', (data) => {
+                    this.log('[STDERR]', data.toString());
+                });
+    
+                this.deleteOldRecordingsProcess.on('exit', (code) => {
+                    this.log(`[EXIT] code ${code}`);
+                });
+                
+                this.deleteOldRecordingsProcess.on('error', (err) => {
+                    this.log(`[ERROR]`, err);
+                });
+
+            } catch (error) {
+                console.log('Error deleting old recordings', error);
+                if (this.deleteOldRecordingsProcess) this.deleteOldRecordingsProcess.kill();
             }
         }, null, true, 'UTC');
     }

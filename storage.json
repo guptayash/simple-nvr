@@ -1,3 +1,4 @@
 {
-    "rootpath": "/media/pi/ExternalHDD1"
+    "rootpath": "/media/pi/ExternalHDD1",
+    "retentionPeriod": 7
 }

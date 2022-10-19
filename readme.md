@@ -70,6 +70,10 @@ A file watcher looks for when multiple files exist in the `raw` directory, and m
 /camera-name/year/month/day/yyyy-mm-ddThh mm ss.mkv
 ```
 
+### Cleaning up of old recordings
+You can choose to have a retention period of the combined streams saved in storage rootPath by setting `retentionPeriod` in `storage.json`. A cron job will run at 1 AM UTC every day to clean up all recordings older than the retention period. This is useful when you have limited storage.
+
+
 ### Detecting corrupted video files
 Very occasionally a video file becomes corrupted, and causes the concatination script to crash. To avoid this, each video file is scanned before the concatination script runs with `ffprobe`. Corrupted files are _not_ deleted in case they contain important (but corrupted) footage, and fixing the files may be possible.
 
