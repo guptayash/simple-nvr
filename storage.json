@@ -1,4 +1,5 @@
 {
     "rootpath": "/media/pi/ExternalHDD1",
-    "retentionPeriod": 7
+    "retentionPeriod": 7,
+    "localTimeFormat": true
 }

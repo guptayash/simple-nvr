@@ -2,7 +2,7 @@ const fs = require('fs');
 const fsAsync = require('fs').promises;
 const path = require('path');
 const childProcess = require("child_process");
-
+const storage = require('./storage.json');
 const probeCheck = require('./probe-check');
 
 module.exports.combineFilesInDirectory = async (directory, deleteOld = false) => {
@@ -46,7 +46,13 @@ function runCombinationProcess(directory, listName = 'files.txt') {
 
 
 function log(message, ...optionalParams) {
-    console.log(`${new Date().toISOString()} ${message}`, ...optionalParams);
+    if (storage.localTimeFormat) {
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+        var localISOTime = (new Date(Date.now() - tzoffset));
+        console.log(`${localISOTime.toISOString()} ${message}`, ...optionalParams);
+    } else {
+        console.log(`${new Date().toISOString()} ${message}`, ...optionalParams);
+    }
 }
 
 function makeListOfFilesInDir(dir, ext = '.mkv', listName = 'files.txt') {
