@@ -28,7 +28,7 @@ class CameraStream {
         this.url = url;
         this.storagePath = path.join(storage.rootpath, this.name);
         this.rawStoragePath = path.join(this.storagePath, 'raw');
-
+        this.localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         fs.mkdirSync(this.rawStoragePath, { recursive: true });
 
@@ -89,13 +89,13 @@ class CameraStream {
         new CronJob('0 1 * * *', async () => {
             try {
                 const yesterday = new Date()
-                yesterday.setUTCHours(-24, 0, 0, 0);
+                storage.localTimeFormat ? yesterday.setHours(-24, 0, 0, 0) : yesterday.setUTCHours(-24, 0, 0, 0);;
                 const dayDir = dayDirectory(this.storagePath, yesterday)
                 await videoConcatinator.combineFilesInDirectory(dayDir, true);
             } catch (error) {
                 console.log('error combining files', error);
             }
-        }, null, true, 'UTC');
+        }, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
     }
 
     initOldRecordingsCron() {
@@ -130,11 +130,17 @@ class CameraStream {
                 console.log('Error deleting old recordings', error);
                 if (this.deleteOldRecordingsProcess) this.deleteOldRecordingsProcess.kill();
             }
-        }, null, true, 'UTC');
+        }, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
     }
 
     log(message, ...optionalParams) {
-        console.log(`${new Date().toISOString()} [${this.name}] ${message}`, ...optionalParams);
+        if (storage.localTimeFormat) {
+            var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            var localISOTime = (new Date(Date.now() - tzoffset));
+            console.log(`${localISOTime.toISOString()} [${this.name}] ${message}`, ...optionalParams);
+        } else {
+            console.log(`${new Date().toISOString()} [${this.name}] ${message}`, ...optionalParams);
+        }
     }
 
     restartRecording() {
@@ -224,18 +230,27 @@ class CameraStream {
         }
         const newDirectory = dayDirectory(this.storagePath, date);
         await fsAsync.mkdir(newDirectory, { recursive: true });
-        const newFilename = `${date.toISOString().split(':').join(' ').split('.')[0]}.mkv`;
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+        var localISOTime = (new Date(date.getTime() - tzoffset));
+        var preferredDate = storage.localTimeFormat ? localISOTime : date;
+        const newFilename = `${preferredDate.toISOString().split(':').join(' ').split('.')[0]}.mkv`;
         const newFilepath = path.join(newDirectory, newFilename);
         await fsAsync.rename(filepath, newFilepath);
-        this.log(`Moved ${date.toISOString()}`);
+        this.log(`Moved ${preferredDate.toISOString()}`);
     }
 }
 
 
 function dayDirectory(baseDir = '/', date = new Date()) {
-    const year = add_zero(date.getUTCFullYear());
-    const month = add_zero(date.getUTCMonth() + 1);
-    const day = add_zero(date.getUTCDate());
+    if (storage.localTimeFormat) {
+        const year = add_zero(date.getFullYear());
+        const month = add_zero(date.getMonth() + 1);
+        const day = add_zero(date.getDate());
+    } else {
+        const year = add_zero(date.getUTCFullYear());
+        const month = add_zero(date.getUTCMonth() + 1);
+        const day = add_zero(date.getUTCDate());
+    }
     return path.join(baseDir, year, month, day);
 }
 
