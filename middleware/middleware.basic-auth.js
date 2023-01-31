@@ -1,9 +1,9 @@
 const {Request, Response, NextFunction} = require('express');
 
 const {nvr_user, nvr_password} = process.env;
+console.log("*****************************", nvr_user, nvr_password);
 
 if (nvr_user) console.log('Basic Auth using username', nvr_user);
-
 /**
  * 
  * @param {Request} req 

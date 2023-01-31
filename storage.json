@@ -1,5 +1,5 @@
 {
-    "rootpath": "/media/pi/ExternalHDD1",
+    "rootpath": "/home/ubuntu/recordings",
     "retentionPeriod": 7,
     "localTimeFormat": true
 }
