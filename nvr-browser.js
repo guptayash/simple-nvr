@@ -5,7 +5,7 @@ const express = require('express');
 const app = express();
 const storage = require('./storage.json');
 
-const port = 3000;
+const port = 3001;
 
 // set view engine
 app.set('view engine', 'ejs');
@@ -71,6 +71,10 @@ app.get('*', async (req, res, next) => {
         route: breadcrumbs,
         locations: locations
     })
+})
+
+app.get('multi', async(req, res, next) => {
+    res.json({message: 'hi'})
 })
 
 app.listen(port, () => {
