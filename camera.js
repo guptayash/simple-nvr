@@ -34,7 +34,8 @@ class CameraStream {
 
         this.ffmpegProcess = null;
         this.recordingWatcher = null;
-        this.deleteOldRecordingsProcessProcess = null;
+	this.deleteOldRecordingsProcessProcess = null;
+	this.deleteEmptyFoldersProcess = null;
         this.args = [
             "-hide_banner",
             "-y", // overwrite files without asking
@@ -86,7 +87,7 @@ class CameraStream {
     }
 
     initCombinationCron() {
-        new CronJob('0 1 * * *', async () => {
+        new CronJob('0 3 * * *', async () => {
             try {
                 const yesterday = new Date()
                 storage.localTimeFormat ? yesterday.setHours(-24, 0, 0, 0) : yesterday.setUTCHours(-24, 0, 0, 0);;
@@ -104,12 +105,12 @@ class CameraStream {
                 const deleteOldRecordingsArgs = [
                     storage.rootpath,
                     "-maxdepth", "5",
-                    "-name", "output.mkv",
+		    "-name", "*.*",
                     "-mtime", storage.retentionPeriod,
-                    "-exec", "rm", "{}", "\;"
+		    "-delete"
                 ]
                 this.deleteOldRecordingsProcess = childProcess.spawn("find", deleteOldRecordingsArgs, {});
-
+		this.deleteEmptyFoldersProcess = childProcess.spawn("find", [".", "-type", "d" "-empty" "-delete"], {})
                 this.deleteOldRecordingsProcess.stdout.on('data', (data) => {
                     this.log('[STDOUT]', data.toString());
                 });
@@ -129,10 +130,10 @@ class CameraStream {
             } catch (error) {
                 console.log('Error deleting old recordings', error);
                 if (this.deleteOldRecordingsProcess) this.deleteOldRecordingsProcess.kill();
+                if(this.deleteEmptyFoldersProcess) this.deleteEmptyFoldersProcess.kill();
             }
-        }, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
-    }
-
+        }, null, true, 'Asia/Kolkata');
+    } 
     log(message, ...optionalParams) {
         if (storage.localTimeFormat) {
             var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds

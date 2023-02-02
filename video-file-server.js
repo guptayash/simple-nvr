@@ -6,6 +6,15 @@ var router = express.Router();
 
 const storage = require('./storage.json');
 
+router.get('/download/*.:ext', (req, res, next) => {
+    const ext = req.params.ext;
+    const parts = `${req.params['0']}.${ext}`.split('/').filter(x => x.length > 0);
+    console.log(ext, parts)
+    var filepath = path.join(storage.rootpath, ...parts);
+    res.download(filepath);
+})
+
+
 router.get('/api/*.:ext', (req, res, next) => {
     // const location = req.params.location;
     // const year = req.params.year;
