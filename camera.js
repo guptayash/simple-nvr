@@ -34,7 +34,7 @@ class CameraStream {
 
         this.ffmpegProcess = null;
         this.recordingWatcher = null;
-	this.deleteOldRecordingsProcessProcess = null;
+	this.deleteOldRecordingsProcess = null;
 	this.deleteEmptyFoldersProcess = null;
         this.args = [
             "-hide_banner",
