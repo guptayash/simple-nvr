@@ -132,8 +132,8 @@ class CameraStream {
                 if (this.deleteOldRecordingsProcess) this.deleteOldRecordingsProcess.kill();
                 if(this.deleteEmptyFoldersProcess) this.deleteEmptyFoldersProcess.kill();
             }
-        }, null, true, 'Asia/Kolkata');
-    } 
+		}, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
+    }
     log(message, ...optionalParams) {
         if (storage.localTimeFormat) {
             var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
