@@ -9,7 +9,7 @@ const port = 3001;
 
 // set view engine
 app.set('view engine', 'ejs');
-app.set('views', 'views');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(require('./middleware/middleware.basic-auth'));
 
@@ -37,6 +37,7 @@ app.get('*.:ext', async (req, res, next) => {
     res.render('video', {
         pageTitle: `${filename}`,
         videoUrl: `/api/${req.params['0']}.${filetype}`,
+	downloadUrl: `/download/${req.params['0']}.${filetype}`,
         route: breadcrumbs
     })
 })

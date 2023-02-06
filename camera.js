@@ -34,7 +34,8 @@ class CameraStream {
 
         this.ffmpegProcess = null;
         this.recordingWatcher = null;
-        this.deleteOldRecordingsProcessProcess = null;
+	this.deleteOldRecordingsProcess = null;
+	this.deleteEmptyFoldersProcess = null;
         this.args = [
             "-hide_banner",
             "-y", // overwrite files without asking
@@ -86,7 +87,7 @@ class CameraStream {
     }
 
     initCombinationCron() {
-        new CronJob('0 1 * * *', async () => {
+        new CronJob('0 3 * * *', async () => {
             try {
                 const yesterday = new Date()
                 storage.localTimeFormat ? yesterday.setHours(-24, 0, 0, 0) : yesterday.setUTCHours(-24, 0, 0, 0);;
@@ -95,7 +96,7 @@ class CameraStream {
             } catch (error) {
                 console.log('error combining files', error);
             }
-        }, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
+        }, null, true, storage.localTimeFormat ? this.localTimezone : 'UTC');
     }
 
     initOldRecordingsCron() {
@@ -104,12 +105,12 @@ class CameraStream {
                 const deleteOldRecordingsArgs = [
                     storage.rootpath,
                     "-maxdepth", "5",
-                    "-name", "output.mkv",
+		    "-name", "*.*",
                     "-mtime", storage.retentionPeriod,
-                    "-exec", "rm", "{}", "\;"
+		    "-delete"
                 ]
                 this.deleteOldRecordingsProcess = childProcess.spawn("find", deleteOldRecordingsArgs, {});
-
+		this.deleteEmptyFoldersProcess = childProcess.spawn("find", [".", "-type", "d", "-empty", "-delete"], {})
                 this.deleteOldRecordingsProcess.stdout.on('data', (data) => {
                     this.log('[STDOUT]', data.toString());
                 });
@@ -129,10 +130,10 @@ class CameraStream {
             } catch (error) {
                 console.log('Error deleting old recordings', error);
                 if (this.deleteOldRecordingsProcess) this.deleteOldRecordingsProcess.kill();
+                if(this.deleteEmptyFoldersProcess) this.deleteEmptyFoldersProcess.kill();
             }
-        }, null, true, storage.localTimeFormat ? localTimezone : 'UTC');
+		}, null, true, storage.localTimeFormat ? this.localTimezone : 'UTC');
     }
-
     log(message, ...optionalParams) {
         if (storage.localTimeFormat) {
             var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
@@ -242,14 +243,15 @@ class CameraStream {
 
 
 function dayDirectory(baseDir = '/', date = new Date()) {
+    let year, month, day;
     if (storage.localTimeFormat) {
-        const year = add_zero(date.getFullYear());
-        const month = add_zero(date.getMonth() + 1);
-        const day = add_zero(date.getDate());
+        year = add_zero(date.getFullYear());
+        month = add_zero(date.getMonth() + 1);
+        day = add_zero(date.getDate());
     } else {
-        const year = add_zero(date.getUTCFullYear());
-        const month = add_zero(date.getUTCMonth() + 1);
-        const day = add_zero(date.getUTCDate());
+        year = add_zero(date.getUTCFullYear());
+        month = add_zero(date.getUTCMonth() + 1);
+        day = add_zero(date.getUTCDate());
     }
     return path.join(baseDir, year, month, day);
 }

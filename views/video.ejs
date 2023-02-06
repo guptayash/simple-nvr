@@ -11,8 +11,11 @@
 
         <video width="100%" controls>
             <source src="<%= videoUrl %>">
-        </video>
-    </div>
+	   </video>
+  <a href="<%= downloadUrl %>" download>
+                Download
+            </a>
+           </div>
 
     <%- include('includes/video-keys.ejs') %>
     <%- include('includes/footer.ejs') %>
