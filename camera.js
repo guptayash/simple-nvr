@@ -110,7 +110,7 @@ class CameraStream {
 		    "-delete"
                 ]
                 this.deleteOldRecordingsProcess = childProcess.spawn("find", deleteOldRecordingsArgs, {});
-		this.deleteEmptyFoldersProcess = childProcess.spawn("find", [".", "-type", "d", "-empty", "-delete"], {})
+		this.deleteEmptyFoldersProcess = childProcess.spawn("find", [storage.rootpath, "-type", "d", "-empty", "-delete"], {})
                 this.deleteOldRecordingsProcess.stdout.on('data', (data) => {
                     this.log('[STDOUT]', data.toString());
                 });
